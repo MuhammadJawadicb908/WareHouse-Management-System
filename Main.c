@@ -44,7 +44,7 @@ int itemCount = 0;
 
 /* List of all functions (so any part can call any other part) */
 
-/* Mubahir */
+/* Mubahir (LOVE YOU)*/
 void vigenereEncrypt(char s[], char key[]);
 void vigenereDecrypt(char s[], char key[]);
 void railFenceEncrypt(char s[], int rails);
