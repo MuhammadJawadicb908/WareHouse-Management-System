@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 
-/* ========== SHARED PART (Jawad) ========== */
+/* shared stuff - Jawad */
 
 #define MAX_CLIENTS 50
 #define MAX_ITEMS 100
@@ -47,6 +47,7 @@ int itemCount = 0;
 /* Mubahir (LOVE YOU)*/
 void vigenereEncrypt(char s[], char key[]);
 void vigenereDecrypt(char s[], char key[]);
+int getRail(int i, int rails);
 void railFenceEncrypt(char s[], int rails);
 void railFenceDecrypt(char s[], int rails);
 void doubleEncrypt(char s[]);
@@ -57,6 +58,7 @@ void hashPassword(char pwd[], char salt[], char outHex[]);
 /* Deepa */
 void readLine(char buf[], int size);
 int readInt();
+int findItem(int sku);
 void addItem();
 void viewInventory();
 void searchItem();
@@ -66,6 +68,8 @@ void mainMenu();
 void clientMenu();
 
 /* Jawad */
+int readFileLine(FILE *fp, char buf[], int size);
+int findClient(char username[]);
 void saveCreds();
 void loadCreds();
 void saveProfiles();
@@ -79,13 +83,17 @@ void viewProfile();
 void updateProfile();
 
 
-/* ========== CIPHERS AND HASHING (Mubahir) ========== */
+/* Mubahir's part - ciphers and hashing */
 /* These do nothing for now. Replace each one with real code. */
 
 void vigenereEncrypt(char s[], char key[]) {
 }
 
 void vigenereDecrypt(char s[], char key[]) {
+}
+
+int getRail(int i, int rails) {
+    return 0;
 }
 
 void railFenceEncrypt(char s[], int rails) {
@@ -113,7 +121,7 @@ void hashPassword(char pwd[], char salt[], char outHex[]) {
 }
 
 
-/* ========== MENUS AND INVENTORY (Deepa) ========== */
+/* Deepa's part - menus and inventory */
 
 /* Simple working versions so everyone can test. Replace if you want. */
 
@@ -130,6 +138,10 @@ int readInt() {
         return -1;
     }
     return n;
+}
+
+int findItem(int sku) {
+    return -1;
 }
 
 void addItem() {
@@ -180,7 +192,15 @@ void mainMenu() {
 }
 
 
-/* ========== STORAGE AND ACCOUNTS (Jawad) ========== */
+/* Jawad's part - storage and accounts */
+
+int readFileLine(FILE *fp, char buf[], int size) {
+    return 0;
+}
+
+int findClient(char username[]) {
+    return -1;
+}
 
 void saveCreds() {
 }
@@ -223,7 +243,7 @@ void updateProfile() {
 }
 
 
-/* ========== MAIN (Jawad) ========== */
+/* main - Jawad */
 
 int main() {
     loadCreds();
