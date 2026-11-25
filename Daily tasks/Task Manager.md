@@ -7,7 +7,7 @@ Finish readLine() and readInt() first, because the others need them.
 Build the basic interface: mainMenu() and clientMenu(). Options can print “not done yet” for now.
 Test with bad input: letters, empty input, huge numbers.
 
-Mubahir
+Mubashir
 
 vigenereEncrypt() / vigenereDecrypt(), tested alone with a small main().
 Then railFenceEncrypt() / railFenceDecrypt(), tested alone.

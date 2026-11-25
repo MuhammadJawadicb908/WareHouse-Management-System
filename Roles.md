@@ -16,7 +16,7 @@ Everything the client sees and uses after opening the program.
 
 Since this is the part people actually interact with, it's what we'll show in the demo. readLine() and readInt() are needed by the others too, so they should be done first.
 
-## Mubahir: Ciphers and Hashing
+## Mubashir: Ciphers and Hashing
 
 The security side of the project.
 
@@ -47,5 +47,5 @@ The part that connects everything into one working program.
 ## Who needs what from whom
 
 - Jawad's registerClient() and loginClient() use Deepa's readLine() and readInt().
-- Jawad's save/load code and login use Mubahir's doubleEncrypt(), doubleDecrypt() and hashPassword().
+- Jawad's save/load code and login use Mubashir's doubleEncrypt(), doubleDecrypt() and hashPassword().
 - Deepa's inventory functions call Jawad's saveInventory() and loadInventory().
