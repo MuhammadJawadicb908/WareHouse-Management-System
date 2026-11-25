@@ -44,7 +44,7 @@ int itemCount = 0;
 
 /* List of all functions (so any part can call any other part) */
 
-/* Mubahir (LOVE YOU)*/
+/* Mubashir (LOVE YOU)*/
 void vigenereEncrypt(char s[], char key[]);
 void vigenereDecrypt(char s[], char key[]);
 int getRail(int i, int rails);
@@ -83,41 +83,143 @@ void viewProfile();
 void updateProfile();
 
 
-/* Mubahir's part - ciphers and hashing */
-/* These do nothing for now. Replace each one with real code. */
+/* Mubashir's part - ciphers and hashing */
 
+#define CIPHER_MAX 1000   /* longest text the Rail Fence can handle (no malloc) */
+
+/* shifts each printable character (ASCII 32-126) forward by the matching key character */
 void vigenereEncrypt(char s[], char key[]) {
+    int keyLength = strlen(key);
+    int i;
+
+    for (i = 0; s[i] != '\0'; i++) {
+        if (s[i] < 32 || s[i] > 126) {
+            continue;                           /* not printable: leave it */
+        }
+        int letter = s[i] - 32;                 /* character as a number 0-94 */
+        int shift  = key[i % keyLength] - 32;   /* % repeats the key */
+        s[i] = (letter + shift) % 95 + 32;      /* % 95 wraps round so it stays printable */
+    }
 }
 
+/* reverses the shift; + 95 stops the number going negative */
 void vigenereDecrypt(char s[], char key[]) {
+    int keyLength = strlen(key);
+    int i;
+
+    for (i = 0; s[i] != '\0'; i++) {
+        if (s[i] < 32 || s[i] > 126) {
+            continue;
+        }
+        int letter = s[i] - 32;
+        int shift  = key[i % keyLength] - 32;
+        s[i] = (letter - shift + 95) % 95 + 32;
+    }
 }
 
+/* which rail position i sits on; with 3 rails the pattern is 0,1,2,1,0,1,2,1,... */
 int getRail(int i, int rails) {
-    return 0;
+    int cycle = 2 * (rails - 1);
+    int place = i % cycle;
+
+    if (place < rails) {
+        return place;           /* going down */
+    }
+    return cycle - place;       /* coming back up */
 }
 
+/* reads the text rail by rail: "HELLOWORLD", 3 rails -> "HOLELWRDLO" */
 void railFenceEncrypt(char s[], int rails) {
+    char result[CIPHER_MAX];
+    int length = strlen(s);
+    int next = 0;
+    int rail, i;
+
+    if (rails < 2 || length >= CIPHER_MAX) {
+        return;
+    }
+
+    for (rail = 0; rail < rails; rail++) {
+        for (i = 0; i < length; i++) {
+            if (getRail(i, rails) == rail) {
+                result[next] = s[i];
+                next++;
+            }
+        }
+    }
+    result[length] = '\0';
+    strcpy(s, result);
 }
 
+/* same loops as encrypt, but puts each character back at its position */
 void railFenceDecrypt(char s[], int rails) {
+    char result[CIPHER_MAX];
+    int length = strlen(s);
+    int next = 0;
+    int rail, i;
+
+    if (rails < 2 || length >= CIPHER_MAX) {
+        return;
+    }
+
+    for (rail = 0; rail < rails; rail++) {
+        for (i = 0; i < length; i++) {
+            if (getRail(i, rails) == rail) {
+                result[i] = s[next];
+                next++;
+            }
+        }
+    }
+    result[length] = '\0';
+    strcpy(s, result);
 }
 
+/* Vigenere first, then Rail Fence */
 void doubleEncrypt(char s[]) {
-    /* Vigenere first, then Rail Fence */
+    vigenereEncrypt(s, KEY);
+    railFenceEncrypt(s, RAILS);
 }
 
+/* reverse order: Rail Fence first, then Vigenere */
 void doubleDecrypt(char s[]) {
-    /* Reverse order: Rail Fence first, then Vigenere */
+    railFenceDecrypt(s, RAILS);
+    vigenereDecrypt(s, KEY);
 }
 
+/* salt = client id + first 8 letters of the username, e.g. "1ali"; fits in salt[20] */
 void makeSalt(char username[], int id, char salt[]) {
-    strcpy(salt, "salt");
+    sprintf(salt, "%d%.8s", id, username);
 }
 
+/* scrambles a number so a one-character change alters the whole hash */
+unsigned int stir(unsigned int n) {
+    n = n ^ (n >> 16);
+    n = n * 0x45d9f3b;
+    n = n ^ (n >> 16);
+    n = n * 0x45d9f3b;
+    n = n ^ (n >> 16);
+    return n;
+}
+
+/* one-way hash of salt + password, written as 16 hex characters */
 void hashPassword(char pwd[], char salt[], char outHex[]) {
-    /* Temporary: just copies the password. Max 32 characters. */
-    strncpy(outHex, pwd, 32);
-    outHex[32] = '\0';
+    unsigned int first  = 5381;
+    unsigned int second = 7919;
+    int i;
+
+    for (i = 0; salt[i] != '\0'; i++) {
+        first  = first  * 31 + salt[i];         /* overflow wraps round, losing information: can't be reversed */
+        second = second * 37 + salt[i];
+    }
+    for (i = 0; pwd[i] != '\0'; i++) {
+        first  = first  * 31 + pwd[i];
+        second = second * 37 + pwd[i];
+    }
+
+    first  = stir(first);
+    second = stir(second ^ first);
+
+    sprintf(outHex, "%08x%08x", first, second);
 }
 
 
