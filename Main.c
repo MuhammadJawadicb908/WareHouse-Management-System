@@ -123,16 +123,28 @@ void hashPassword(char pwd[], char salt[], char outHex[]) {
 
 /* Deepa's part - menus and inventory */
 
-/* Simple working versions so everyone can test. Replace if you want. */
-
+/* reads a line and removes the newline */
 void readLine(char buf[], int size) {
-    fgets(buf, size, stdin);
+    int c;
+
+    if (fgets(buf, size, stdin) == NULL) {
+        buf[0] = '\0';
+        return;
+    }
+    if (strchr(buf, '\n') == NULL) {
+        c = getchar();
+        while (c != '\n' && c != EOF) {
+            c = getchar();
+        }
+    }
     buf[strcspn(buf, "\n")] = '\0';
 }
 
+/* reads a number, returns -1 if the input is not a number */
 int readInt() {
     char line[50];
     int n;
+
     readLine(line, 50);
     if (sscanf(line, "%d", &n) != 1) {
         return -1;
@@ -140,39 +152,209 @@ int readInt() {
     return n;
 }
 
+/* returns the position of an SKU, or -1 if not found */
 int findItem(int sku) {
+    int i;
+
+    for (i = 0; i < itemCount; i++) {
+        if (items[i].sku == sku) {
+            return i;
+        }
+    }
     return -1;
 }
 
+/* adds an item after checking sku, name and quantity */
 void addItem() {
-    printf("addItem: not done yet\n");
+    int sku, qty;
+    char name[40];
+
+    if (itemCount >= MAX_ITEMS) {
+        printf("Inventory is full.\n");
+        return;
+    }
+
+    printf("Enter SKU (a positive number): ");
+    sku = readInt();
+    if (sku <= 0) {
+        printf("Invalid SKU.\n");
+        return;
+    }
+    if (findItem(sku) != -1) {
+        printf("This SKU already exists.\n");
+        return;
+    }
+
+    printf("Enter item name: ");
+    readLine(name, 40);
+    if (strlen(name) == 0) {
+        printf("Name cannot be empty.\n");
+        return;
+    }
+
+    printf("Enter quantity (0 or more): ");
+    qty = readInt();
+    if (qty < 0) {
+        printf("Invalid quantity.\n");
+        return;
+    }
+
+    items[itemCount].sku = sku;
+    strcpy(items[itemCount].name, name);
+    items[itemCount].quantity = qty;
+    itemCount++;
+
+    saveInventory(clients[currentClient].id);
+    printf("Item added.\n");
 }
 
+/* prints all items as a table */
 void viewInventory() {
-    printf("viewInventory: not done yet\n");
+    int i;
+
+    if (itemCount == 0) {
+        printf("Your inventory is empty.\n");
+        return;
+    }
+
+    printf("\n%-10s %-40s %-10s\n", "SKU", "Name", "Quantity");
+    for (i = 0; i < itemCount; i++) {
+        printf("%-10d %-40s %-10d\n", items[i].sku, items[i].name, items[i].quantity);
+    }
 }
 
+/* search by SKU or by part of the name */
 void searchItem() {
-    printf("searchItem: not done yet\n");
+    int choice, sku, i;
+    int found = 0;
+    char part[40];
+
+    printf("1. Search by SKU\n");
+    printf("2. Search by name\n");
+    printf("Choice: ");
+    choice = readInt();
+
+    if (choice == 1) {
+        printf("Enter SKU: ");
+        sku = readInt();
+        i = findItem(sku);
+        if (i == -1) {
+            printf("Item not found.\n");
+        } else {
+            printf("SKU: %d | Name: %s | Quantity: %d\n",
+                   items[i].sku, items[i].name, items[i].quantity);
+        }
+    } else if (choice == 2) {
+        printf("Enter part of the name: ");
+        readLine(part, 40);
+        if (strlen(part) == 0) {
+            printf("Nothing entered.\n");
+            return;
+        }
+        for (i = 0; i < itemCount; i++) {
+            if (strstr(items[i].name, part) != NULL) {
+                printf("SKU: %d | Name: %s | Quantity: %d\n",
+                       items[i].sku, items[i].name, items[i].quantity);
+                found = 1;
+            }
+        }
+        if (found == 0) {
+            printf("No item matches.\n");
+        }
+    } else {
+        printf("Invalid choice.\n");
+    }
 }
 
+/* changes the quantity of an item */
 void updateItem() {
-    printf("updateItem: not done yet\n");
+    int sku, i, qty;
+
+    printf("Enter SKU of the item: ");
+    sku = readInt();
+    i = findItem(sku);
+    if (i == -1) {
+        printf("Item not found.\n");
+        return;
+    }
+
+    printf("Current quantity is %d. Enter new quantity: ", items[i].quantity);
+    qty = readInt();
+    if (qty < 0) {
+        printf("Invalid quantity.\n");
+        return;
+    }
+
+    items[i].quantity = qty;
+    saveInventory(clients[currentClient].id);
+    printf("Quantity updated.\n");
 }
 
+/* deletes an item and shifts the rest left */
 void removeItem() {
-    printf("removeItem: not done yet\n");
+    int sku, i, pos;
+
+    printf("Enter SKU of the item to remove: ");
+    sku = readInt();
+    pos = findItem(sku);
+    if (pos == -1) {
+        printf("Item not found.\n");
+        return;
+    }
+
+    for (i = pos; i < itemCount - 1; i++) {
+        items[i] = items[i + 1];
+    }
+    itemCount--;
+
+    saveInventory(clients[currentClient].id);
+    printf("Item removed.\n");
 }
 
+/* menu shown after login */
 void clientMenu() {
-    printf("clientMenu: not done yet\n");
+    int choice = 0;
+
+    while (choice != 8) {
+        printf("\n===== Client Menu =====\n");
+        printf("1. Add item\n");
+        printf("2. View inventory\n");
+        printf("3. Search item\n");
+        printf("4. Update quantity\n");
+        printf("5. Remove item\n");
+        printf("6. View profile\n");
+        printf("7. Update profile\n");
+        printf("8. Logout\n");
+        printf("Choice: ");
+        choice = readInt();
+
+        if (choice == 1) {
+            addItem();
+        } else if (choice == 2) {
+            viewInventory();
+        } else if (choice == 3) {
+            searchItem();
+        } else if (choice == 4) {
+            updateItem();
+        } else if (choice == 5) {
+            removeItem();
+        } else if (choice == 6) {
+            viewProfile();
+        } else if (choice == 7) {
+            updateProfile();
+        } else if (choice != 8) {
+            printf("Invalid choice.\n");
+        }
+    }
 }
 
+/* register, login or exit */
 void mainMenu() {
     int choice = 0;
 
     while (choice != 3) {
-        printf("\n1. Register\n");
+        printf("\n===== Warehouse System =====\n");
+        printf("1. Register\n");
         printf("2. Login\n");
         printf("3. Exit\n");
         printf("Choice: ");
